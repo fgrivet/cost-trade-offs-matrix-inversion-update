@@ -1,0 +1,9 @@
+numpy
+pandas
+scipy
+tqdm
+matplotlib
+plotly
+nbformat>=4.2.0
+kaleido
+ipykernel

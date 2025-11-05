@@ -1,0 +1,91 @@
+# Définition du pipeline
+# Il s'agit d'un pipeline simple qui se déclenche à chaque push sur la branche main de GitLab.
+default:
+  tags:
+    - Usine_Logicielle
+  timeout: 30 minutes
+# Définition des étapes du pipeline
+stages:
+  - sync
+# Définition des variables globales pour tous les jobs  
+#============================
+
+variables:
+  # Variables globales déclarées en dehors du yaml, définies automatiquement par Gitlab (Liste non exhaustive. Voir https://docs.gitlab.com/ee/ci/pipelines/index.html#prefill-variables-in-manual-pipelines)
+  #============================
+  # non utilisées dans ce yaml
+
+  # Variables globales déclarées en dehors du yaml, définies par l'UL au niveau de l’instance Gitlab
+  #============================
+  # CNES_CERTIFICATE
+  # JAVA_HOME
+  # UL_GITLAB_HOST
+  # UL_GITLAB_URL
+  # UL_GITLAB_API_URL
+  # UL_JENKINS_URL
+  # UL_SONARQUBE_HOST
+  # UL_SONARQUBE_URL
+  # UL_SONARQUBE_API_URL
+  # UL_JIRA_HOST
+  # UL_JIRA_URL
+  # UL_JIRA_API_URL
+  # UL_CONFLUENCE_HOST
+  # UL_CONFLUENCE_URL
+  # UL_CONFLUENCE_API_URL
+  # UL_ARTIFACTORY_HOST
+  # UL_ARTIFACTORY_URL
+  # UL_ARTIFACTORY_API_URL
+  # UL_PROXY_SURF_HOST
+  # UL_PROXY_SURF_PORT
+  # UL_PROXY_TECH_HOST
+  # UL_PROXY_TECH_PORT
+  # UL_DOCKER_AUTH_CONFIG
+
+  # Variables globales déclarées en dehors du yaml, définies par l'UL, au niveau du projet Gitlab dans le menu "Settings > CI/CD > Variables" :
+  #============================
+
+  # GITHUB_TOKEN
+  # GITHUB_TOKEN_NAME
+
+  # Variables globales déclarées dans le yaml, constituant des "paramètres" pour les jobs manuels :
+  #============================
+  DEBUG:
+    value: "false"
+    description: "Afficher des logs supplémentaires"
+
+  GITHUB_URL: github.com/usinelogicielle
+
+  #============================
+  # Variables pour les tags des images Docker à utiliser pour les jobs
+  #---------------------------
+  TAG_IMAGE_ALPINE_GIT: "publicremotes-docker/alpine/git:v2.45.2"
+
+  # Variables globales déclarées dans le yaml :  
+  #============================
+  CI_REGISTRY: "https://${UL_ARTIFACTORY_HOST}"
+  # Variable permettant d'annuler le clone par défaut du dépôt. Car il faut configurer l'authentification LFS au préalable.
+  GIT_STRATEGY: none
+
+# Définition de la tâche de synchronisation du dépôt GitLab vers le dépôt GitHub
+sync:
+  stage: sync
+  # Définition de l'image Docker utilisée pour le pipeline. On préfère une image avec git déjà installé.
+  image:
+    name: ${UL_ARTIFACTORY_HOST}/${TAG_IMAGE_ALPINE_GIT}
+    entrypoint: [""]
+
+  before_script:
+    # Ajout des certificats CNES pour permettre au runner de cloner le dépôt Gitlab.
+    - cat ${CNES_CERTIFICATE} > /usr/local/share/ca-certificates/my-cert.crt
+    # Mise à jour des certificats
+    - update-ca-certificates
+  script:
+    # Clone du dépôt gitlab
+    - git clone $CI_REPOSITORY_URL
+    # On se positionne dans le dossier du dépôt cloné.
+    - cd $(basename $CI_REPOSITORY_URL .git)
+    # Ajoute le remote github avec les informations d'identification
+    - git remote add gitlabsync https://${GITHUB_TOKEN_NAME}:${GITHUB_TOKEN}@${GITHUB_URL}/gitlabsync.git
+    # Pousse les modifications de la branche main de Gitlab vers la branche main de GitHub.
+    - git push gitlabsync main:main
+  timeout: 20 minutes

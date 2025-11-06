@@ -53,12 +53,10 @@ variables:
     value: "false"
     description: "Afficher des logs supplémentaires"
 
-  GITHUB_URL: github.com/usinelogicielle
-
   #============================
   # Variables pour les tags des images Docker à utiliser pour les jobs
   #---------------------------
-  TAG_IMAGE_ALPINE_GIT: "publicremotes-docker/alpine/git:v2.45.2"
+  TAG_IMAGE_ALPINE_GIT: "publicremotes-docker/python:3.10.8"
 
   # Variables globales déclarées dans le yaml :  
   #============================
@@ -85,7 +83,7 @@ sync:
     # On se positionne dans le dossier du dépôt cloné.
     - cd $(basename $CI_REPOSITORY_URL .git)
     # Ajoute le remote github avec les informations d'identification
-    - git remote add gitlabsync https://${GITHUB_TOKEN_NAME}:${GITHUB_TOKEN}@${GITHUB_URL}/gitlabsync.git
+    - git remote add gitlabsync https://${GITHUB_TOKEN_NAME}:${GITHUB_TOKEN}@${GITHUB_URL}
     # Pousse les modifications de la branche main de Gitlab vers la branche main de GitHub.
     - git push gitlabsync main:main
   timeout: 20 minutes

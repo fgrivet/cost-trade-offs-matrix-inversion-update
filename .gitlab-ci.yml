@@ -56,7 +56,7 @@ variables:
   #============================
   # Variables pour les tags des images Docker à utiliser pour les jobs
   #---------------------------
-  TAG_IMAGE_ALPINE_GIT: "publicremotes-docker/python:3.10.8"
+  TAG_IMAGE_ALPINE_GIT: "publicremotes-docker/alpine/git:v2.45.2"
 
   # Variables globales déclarées dans le yaml :  
   #============================
